@@ -59,7 +59,7 @@ setup(
 )
 
 # https://www.geeksforgeeks.org/swig-to-wrap-c-code/
-# note: make sure you're in the "\pyWinhook-master" dir
+# note: make sure you're in the "\CustomWinHook" dir
 
 # run "swig -python .\pyWinhook\cpyHook.i"
 # to compile the c code

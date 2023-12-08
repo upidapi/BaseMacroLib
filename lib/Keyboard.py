@@ -1,11 +1,9 @@
 from dataclasses import dataclass
 from typing import Literal
 
-import pyWinhook
 import pythoncom
-# from pyWinhook import \
-#     KeyboardEvent as RawKeyboardEvent, \
-#     HookConstants, HookManager
+from CustomWinHook import KeyboardEvent as RawKeyboardEvent, HookManager
+
 
 def print_mouse_info(event: RawKeyboardEvent):
     print({
@@ -41,5 +39,3 @@ def __init__():  # hm: HookManager):
 
 
 __init__()
-
-x = "^^^^d^^*''''¨¨¨¨¨¨¨¨¨¨"
