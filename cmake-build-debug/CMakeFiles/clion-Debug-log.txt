@@ -1,0 +1,1 @@
+CMakeLists.txt not found in C:\Users\videw\PycharmProjects\MacroLib Select CMakeLists.txt
