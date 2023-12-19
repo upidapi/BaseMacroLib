@@ -1,3 +1,2 @@
-from Vk import Vk
-from KeyState import get_v_key_state
-
+from .Event import KeyboardEvent, MouseEvent, EventStack
+from .idk import bind_func_to_key, listen, print_events

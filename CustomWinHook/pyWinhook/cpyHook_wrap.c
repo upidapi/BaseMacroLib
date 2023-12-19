@@ -3251,15 +3251,14 @@ SWIGINTERNINLINE PyObject*
 extern "C" {
 #endif
 
-  unsigned short ConvertToASCII(unsigned int keycode, unsigned int scancode);
-	void UpdateKeyState(unsigned int vkey, int msg);
+  void ConvertToUnicode(unsigned int keycode, unsigned int scancode, WCHAR uc[5]);
+  void UpdateKeyState(unsigned int vkey, int msg);
 
   LRESULT CALLBACK cLLKeyboardCallback(int code, WPARAM wParam, LPARAM lParam) {
     PyObject *arglist, *r;
     PKBDLLHOOKSTRUCT kbd;
     HWND hwnd;
     PWSTR win_name = NULL;
-    unsigned short ascii = 0;
     static int win_len;
     static long result;
     long pass = 1;
@@ -3282,8 +3281,9 @@ extern "C" {
     // get the current foreground window (might not be the real window that received the event)
     hwnd = GetForegroundWindow();
 
-    // convert to an ASCII code if possible
-    ascii = ConvertToASCII(kbd->vkCode, kbd->scanCode);
+    // convert to an unicode if possible
+    WCHAR unicode[5] = {0};
+    ConvertToUnicode(kbd->vkCode, kbd->scanCode, unicode);
 
 #ifdef PY3K
     // grab the window name if possible
@@ -3294,19 +3294,19 @@ extern "C" {
     }
 
     //build the argument list to the callback function
-    arglist = Py_BuildValue("(iiiiiiiu)", wParam, kbd->vkCode, kbd->scanCode, ascii,
-                            kbd->flags, kbd->time, hwnd, win_name);
+    arglist = Py_BuildValue("(iiiuiiiu)", wParam, kbd->vkCode, kbd->scanCode, unicode,
+                kbd->flags, kbd->time, hwnd, win_name);
 #else
     // grab the window name if possible
     win_len = GetWindowTextLength(hwnd);
     if(win_len > 0) {
       win_name = (PSTR) malloc(sizeof(char) * win_len + 1);
       GetWindowText(hwnd, win_name, win_len + 1);
-    } 
-    
+    }
+
     //build the argument list to the callback function
-    arglist = Py_BuildValue("(iiiiiiiz)", wParam, kbd->vkCode, kbd->scanCode, ascii,
-                            kbd->flags, kbd->time, hwnd, win_name);
+    arglist = Py_BuildValue("(iiiuiiiz)", wParam, kbd->vkCode, kbd->scanCode, unicode,
+               kbd->flags, kbd->time, hwnd, win_name);
 #endif
 
     r = PyObject_CallObject(callback_funcs[WH_KEYBOARD_LL], arglist);
@@ -3479,7 +3479,7 @@ extern "C" {
 
     return result;
   }
-  
+
   void SetKeyState(unsigned int vkey, int down) {
 	  // (1 > 0) ? True : False
  		if (vkey == VK_MENU || vkey == VK_LMENU || vkey == VK_RMENU) {
@@ -3499,7 +3499,7 @@ extern "C" {
  			key_state[VK_SCROLL] = !key_state[VK_SCROLL];
  		}
   }
-  
+
   void UpdateKeyState(unsigned int vkey, int msg) {
   	if (msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN) {
 			SetKeyState(vkey, 1);
@@ -3507,23 +3507,29 @@ extern "C" {
 			SetKeyState(vkey, 0);
   	}
   }
-  
+
   unsigned int cGetKeyState(unsigned int vkey) {
   	return key_state[vkey];
   }
 
-  unsigned short ConvertToASCII(unsigned int keycode, unsigned int scancode) {
+    void ConvertToUnicode(unsigned int keycode, unsigned int scancode, WCHAR uc[5]) {
     int r;
-    unsigned short c = 0;
+    // unsigned short c = 0;
+
+    // seting the 2
+    unsigned int wFlags = 4;
 
     Py_BEGIN_ALLOW_THREADS
-    r = ToAscii(keycode, scancode, key_state, &c, 0);
+    r = ToUnicode(keycode, scancode, key_state, uc, 4, wFlags);
     Py_END_ALLOW_THREADS
     if(r < 0) {
-      //PyErr_SetString(PyExc_ValueError, "Could not convert to ASCII");
-      return 0;
+      //PyErr_SetString(PyExc_ValueError, "Could not convert to Unicode");
+
+      // clear wchar
+      for (int i = 0; i < 5; i++) {
+         uc[i] = '\0';
+      }
     }
-    return c;
   }
 
 SWIGINTERN PyObject *_wrap_cGetKeyState(PyObject *self, PyObject *args) {

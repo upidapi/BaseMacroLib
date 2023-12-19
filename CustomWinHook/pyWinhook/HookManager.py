@@ -45,6 +45,9 @@ class HookConstants:
     WM_MOUSEWHEEL = 0x020A
     WM_MOUSELAST = 0x020A
 
+    side_button_down = 523  # 0x20B
+    side_button_up = 524  # 0x20C
+
     WM_KEYFIRST = 0x0100
     WM_KEYDOWN = 0x0100
     WM_KEYUP = 0x0101
@@ -194,23 +197,47 @@ class HookConstants:
         'VK_OEM_7': 0xDE,
         'VK_OEM_8': 0xDF,
         'VK_OEM_102': 0xE2,
-        'VK_PACKET': 0xE7}
+        'VK_PACKET': 0xE7,
+
+        "side_button_down": 523,
+        "side_button_up": 524,
+    }
 
     # inverse mapping of keycodes
     id_to_vk = dict([(v, k) for k, v in vk_to_id.items()])
 
     # message constants to message names
-    msg_to_name = {WM_MOUSEMOVE: 'mouse move', WM_LBUTTONDOWN: 'mouse left down',
-                   WM_LBUTTONUP: 'mouse left up', WM_LBUTTONDBLCLK: 'mouse left double',
-                   WM_RBUTTONDOWN: 'mouse right down', WM_RBUTTONUP: 'mouse right up',
-                   WM_RBUTTONDBLCLK: 'mouse right double', WM_MBUTTONDOWN: 'mouse middle down',
-                   WM_MBUTTONUP: 'mouse middle up', WM_MBUTTONDBLCLK: 'mouse middle double',
-                   WM_MOUSEWHEEL: 'mouse wheel', WM_KEYDOWN: 'key down',
-                   WM_KEYUP: 'key up', WM_CHAR: 'key char', WM_DEADCHAR: 'key dead char',
-                   WM_SYSKEYDOWN: 'key sys down', WM_SYSKEYUP: 'key sys up',
-                   WM_SYSCHAR: 'key sys char', WM_SYSDEADCHAR: 'key sys dead char'}
+    msg_to_name_map = {
+        WM_MOUSEMOVE: 'mouse move',
 
-    def MsgToName(cls, msg):
+        WM_LBUTTONDOWN: 'mouse left down',
+        WM_LBUTTONUP: 'mouse left up',
+        WM_LBUTTONDBLCLK: 'mouse left double',
+
+        WM_RBUTTONDOWN: 'mouse right down',
+        WM_RBUTTONUP: 'mouse right up',
+        WM_RBUTTONDBLCLK: 'mouse right double',
+
+        WM_MBUTTONDOWN: 'mouse middle down',
+        WM_MBUTTONUP: 'mouse middle up',
+        WM_MBUTTONDBLCLK: 'mouse middle double',
+
+        WM_MOUSEWHEEL: 'mouse wheel',
+
+        WM_KEYDOWN: 'key down',
+        WM_KEYUP: 'key up',
+        WM_CHAR: 'key char',
+        WM_DEADCHAR: 'key dead char',
+        WM_SYSKEYDOWN: 'key sys down',
+        WM_SYSKEYUP: 'key sys up',
+        WM_SYSCHAR: 'key sys char',
+        WM_SYSDEADCHAR: 'key sys dead char',
+
+        side_button_down: "side button down",
+        side_button_up: "side button up",
+    }
+
+    def msg_to_name(cls, msg):
         """
         Class method. Converts a message value to message name.
 
@@ -219,9 +246,9 @@ class HookConstants:
         @return: Name of the event
         @rtype: string
         """
-        return HookConstants.msg_to_name.get(msg)
+        return HookConstants.msg_to_name_map.get(msg)
 
-    def VKeyToID(cls, vkey):
+    def v_key_to_id(cls, vkey):
         """
         Class method. Converts a virtual keycode name to its value.
 
@@ -232,7 +259,7 @@ class HookConstants:
         """
         return HookConstants.vk_to_id.get(vkey)
 
-    def IDToName(cls, code):
+    def id_to_name(cls, code):
         """
         Class method. Gets the keycode name for the given value.
 
@@ -241,7 +268,7 @@ class HookConstants:
         @return: Virtual keycode name
         @rtype: string
         """
-        if (code >= 0x30 and code <= 0x39) or (code >= 0x41 and code <= 0x5A):
+        if (0x30 <= code <= 0x39) or (0x41 <= code <= 0x5A):
             text = chr(code)
         else:
             text = HookConstants.id_to_vk.get(code)
@@ -249,128 +276,120 @@ class HookConstants:
                 text = text[3:].title()
         return text
 
-    MsgToName = classmethod(MsgToName)
-    IDToName = classmethod(IDToName)
-    VKeyToID = classmethod(VKeyToID)
+    msg_to_name = classmethod(msg_to_name)
+    id_to_name = classmethod(id_to_name)
+    v_key_to_id = classmethod(v_key_to_id)
 
 
 class HookEvent(object):
     """
     Holds information about a general hook event.
 
-    @ivar Message: Keyboard or mouse event message
-    @type Message: integer
-    @ivar Time: Seconds since the epoch when the even current
-    @type Time: integer
-    @ivar Window: Window handle of the foreground window at the time of the event
-    @type Window: integer
-    @ivar WindowName: Name of the foreground window at the time of the event
-    @type WindowName: string
+    @ivar message: Keyboard or mouse event message
+    @type message: integer
+    @ivar time: Seconds since the epoch when the even current
+    @type time: integer
+    @ivar window_handle: Window handle of the foreground window at the time of the event
+    @type window_handle: integer
+    @ivar window_name: Name of the foreground window at the time of the event
+    @type window_name: string
     """
 
     def __init__(self, msg, time, hwnd, window_name):
         """Initializes an event instance."""
-        self.Message = msg
-        self.Time = time
-        self.Window = hwnd
-        self.WindowName = window_name
+        self.message = msg
+        self.time = time
+        self.window_handle = hwnd
+        self.window_name = window_name
 
-    def GetMessageName(self):
+    def get_message_name(self):
         """
         @return: Name of the event
         @rtype: string
         """
-        return HookConstants.MsgToName(self.Message)
-
-    MessageName = property(fget=GetMessageName)
+        return HookConstants.msg_to_name(self.message)
 
 
-class MouseEvent(HookEvent):
+class RawMouseEvent(HookEvent):
     """
     Holds information about a mouse event.
 
-    @ivar Position: Location of the mouse event on the screen
-    @type Position: 2-tuple of integer
-    @ivar Wheel: Positive if the wheel scrolls up, negative if down, zero otherwise
-    @type Wheel: integer
-    @ivar Injected: Was this event generated programmatically?
-    @type Injected: boolean
+    @ivar position: Location of the mouse event on the screen
+    @type position: 2-tuple of integer
+    @ivar wheel_direction: Positive if the wheel scrolls up, negative if down, zero otherwise
+    @type wheel_direction: integer
+    @ivar injected: Was this event generated programmatically?
+    @type injected: boolean
     """
 
     def __init__(self, msg, x, y, data, flags, time, hwnd, window_name):
         """Initializes an instance of the class."""
         HookEvent.__init__(self, msg, time, hwnd, window_name)
-        self.Position = (x, y)
-        if data > 0:
-            w = 1
-        elif data < 0:
-            w = -1
-        else:
-            w = 0
-        self.Wheel = w
-        self.Injected = flags & 0x01
+        self.position = (x, y)
+        # if data > 0:
+        #     w = 1
+        # elif data < 0:
+        #     w = -1
+        # else:
+        #     w = 0
+        self.data = data
+        self.injected = flags & 0x01
 
 
-class KeyboardEvent(HookEvent):
+class RawKeyboardEvent(HookEvent):
     """
     Holds information about a mouse event.
 
-    @ivar KeyID: Virtual key code
-    @type KeyID: integer
-    @ivar ScanCode: Scan code
-    @type ScanCode: integer
-    @ivar Ascii: ASCII value, if one exists
-    @type Ascii: string
+    @ivar vk_code: Virtual key code
+    @type vk_code: integer
+    @ivar scan_code: Scan code
+    @type scan_code: integer
+    @ivar unicode: Unicode value, if one exists
+    @type unicode: string
     """
 
-    def __init__(self, msg, vk_code, scan_code, ascii, flags, time, hwnd, window_name):
+    def __init__(self, msg, vk_code, scan_code, unicode, flags, time, hwnd, window_name):
         """Initializes an instances of the class."""
         HookEvent.__init__(self, msg, time, hwnd, window_name)
-        self.KeyID = vk_code
-        self.ScanCode = scan_code
-        self.Ascii = ascii
+        self.vk_code = vk_code
+        self.scan_code = scan_code
+        self.unicode = unicode
         self.flags = flags
 
-    def GetKey(self):
+    def get_key(self):
         """
         @return: Name of the virtual keycode
         @rtype: string
         """
-        return HookConstants.IDToName(self.KeyID)
+        return HookConstants.id_to_name(self.vk_code)
 
-    def IsExtended(self):
+    def is_extended(self):
         """
         @return: Is this an extended key?
         @rtype: boolean
         """
         return self.flags & 0x01
 
-    def IsInjected(self):
+    def is_injected(self):
         """
         @return: Was this event generated programmatically?
         @rtype: boolean
         """
         return self.flags & 0x10
 
-    def IsAlt(self):
+    def is_alt(self):
         """
         @return: Was the alt key depressed?
         @rtype: boolean
         """
         return self.flags & 0x20
 
-    def IsTransition(self):
+    def is_transition(self):
         """
         @return: Is this a transition from up to down or vice versa?
         @rtype: boolean
         """
         return self.flags & 0x80
-
-    Key = property(fget=GetKey)
-    Extended = property(fget=IsExtended)
-    Injected = property(fget=IsInjected)
-    Alt = property(fget=IsAlt)
-    Transition = property(fget=IsTransition)
 
 
 class HookManager(object):
@@ -400,8 +419,8 @@ class HookManager(object):
         self.UnhookMouse()
         self.UnhookKeyboard()
 
-    KeyboardEventCallback = Callable[[KeyboardEvent], True]
-    MouseEventCallback = Callable[[MouseEvent], True]
+    KeyboardEventCallback = Callable[[RawKeyboardEvent], None] | None
+    MouseEventCallback = Callable[[RawMouseEvent], None] | None
 
     def HookMouse(self):
         """Begins watching for mouse events."""
@@ -444,14 +463,26 @@ class HookManager(object):
         @param hwnd: Window handle of the foreground window at the time of the event
         @type hwnd: integer
         """
-        event = MouseEvent(msg, x, y, data, flags, time, hwnd, window_name)
+
+        event = RawMouseEvent(msg, x, y, data, flags, time, hwnd, window_name)
+        # print(msg, event.get_message_name(), data)
+
         func = self.mouse_funcs.get(msg)
         if func:
-            return func(event)
-        else:
-            return True
+            func(event)
+        return True
 
-    def KeyboardSwitch(self, msg, vk_code, scan_code, ascii, flags, time, hwnd, win_name):
+    def KeyboardSwitch(
+            self,
+            msg,
+            vk_code,
+            scan_code,
+            unicode,
+            flags,
+            time,
+            hwnd,
+            win_name,
+    ):
         """
         Passes a keyboard event on to the appropriate handler if one is registered.
 
@@ -461,8 +492,8 @@ class HookManager(object):
         @type vk_code: integer
         @param scan_code: The scan code of the key
         @type scan_code: integer
-        @param ascii: ASCII numeric value for the key if available
-        @type ascii: integer
+        @param unicode: ASCII numeric value for the key if available
+        @type unicode: integer
         @param flags: Flags associated with the key event (injected or not, extended key, etc.)
         @type flags: integer
         @param time: Time since the epoch of the key event
@@ -470,12 +501,12 @@ class HookManager(object):
         @param hwnd: Window handle of the foreground window at the time of the event
         @type hwnd: integer
         """
-        event = KeyboardEvent(msg, vk_code, scan_code, ascii, flags, time, hwnd, win_name)
+
+        event = RawKeyboardEvent(msg, vk_code, scan_code, unicode, flags, time, hwnd, win_name)
         func = self.keyboard_funcs.get(msg)
         if func:
-            return func(event)
-        else:
-            return True
+            func(event)
+        return True
 
     def SubscribeMouseMove(self, func: MouseEventCallback):
         """
@@ -587,11 +618,27 @@ class HookManager(object):
         else:
             self._connect(self.mouse_funcs, HookConstants.WM_MOUSEWHEEL, func)
 
+    def sub_mouse_side_buttons(self, func: MouseEventCallback):
+        """
+        523 None 131072  0x20000
+        524 None 131072
+        523 None 65536  0x10000
+        524 None 65536
+        """
+
+        if func is None:
+            self._disconnect(self.mouse_funcs, HookConstants.side_button_down)
+            self._disconnect(self.mouse_funcs, HookConstants.side_button_up)
+        else:
+            self._connect(self.mouse_funcs, HookConstants.side_button_down, func)
+            self._connect(self.mouse_funcs, HookConstants.side_button_up, func)
+
     def SubscribeMouseAll(self, func: MouseEventCallback):
         """
         Registers the given function as the callback for all mouse events. Use the
         MouseAll property as a shortcut.
         """
+        self.sub_mouse_side_buttons(func)
         self.SubscribeMouseMove(func)
         self.SubscribeMouseWheel(func)
         self.SubscribeMouseAllButtons(func)
@@ -602,7 +649,6 @@ class HookManager(object):
         MouseButtonAll property as a shortcut.
         """
         self.SubscribeMouseAllButtonsDown(func)
-        self.SubscribeMouseAllButtonsDown()
         self.SubscribeMouseAllButtonsUp(func)
         self.SubscribeMouseAllButtonsDbl(func)
 
@@ -684,29 +730,6 @@ class HookManager(object):
         self.SubscribeKeyDown(func)
         self.SubscribeKeyUp(func)
         self.SubscribeKeyChar(func)
-
-    # MouseAll = property(fset=SubscribeMouseAll)
-    # MouseAllButtons = property(fset=SubscribeMouseAllButtons)
-    # MouseAllButtonsUp = property(fset=SubscribeMouseAllButtonsUp)
-    # MouseAllButtonsDown = property(fset=SubscribeMouseAllButtonsDown)
-    # MouseAllButtonsDbl = property(fset=SubscribeMouseAllButtonsDbl)
-    #
-    # MouseWheel = property(fset=SubscribeMouseWheel)
-    # MouseMove = property(fset=SubscribeMouseMove)
-    # MouseLeftUp = property(fset=SubscribeMouseLeftUp)
-    # MouseLeftDown = property(fset=SubscribeMouseLeftDown)
-    # MouseLeftDbl = property(fset=SubscribeMouseLeftDbl)
-    # MouseRightUp = property(fset=SubscribeMouseRightUp)
-    # MouseRightDown = property(fset=SubscribeMouseRightDown)
-    # MouseRightDbl = property(fset=SubscribeMouseRightDbl)
-    # MouseMiddleUp = property(fset=SubscribeMouseMiddleUp)
-    # MouseMiddleDown = property(fset=SubscribeMouseMiddleDown)
-    # MouseMiddleDbl = property(fset=SubscribeMouseMiddleDbl)
-    #
-    # KeyUp = property(fset=SubscribeKeyUp)
-    # KeyDown = property(fset=SubscribeKeyDown)
-    # KeyChar = property(fset=SubscribeKeyChar)
-    # KeyAll = property(fset=SubscribeKeyAll)
 
     @staticmethod
     def _connect(switch: dict, id: int, func: MouseEventCallback | KeyboardEventCallback):
