@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from Main.Core import *
-from Main.MyBluetooth import GUID, SYSTEMTIME
+from FailedTests.Main.Core import *
+from FailedTests.Main.MyBluetooth import GUID, SYSTEMTIME
 
 
 class LE_UUID(RStructure):

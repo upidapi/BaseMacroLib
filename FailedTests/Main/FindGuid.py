@@ -1,6 +1,6 @@
 # https://learn.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-wsalookupservicebeginw
 from Core import *
-from Main.CWinTypes.Other import GUID
+from FailedTests.Main.CWinTypes.Other import GUID
 
 
 class ControlFlags:

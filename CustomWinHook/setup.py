@@ -26,6 +26,7 @@
 # doclines = __doc__.split('\n')
 #
 
+# pip install setuptools
 from setuptools import setup, Extension
 
 # setup(name='pyWinhook',

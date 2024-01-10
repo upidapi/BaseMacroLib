@@ -1,9 +1,7 @@
 import ctypes
-from time import sleep
 from ctypes import (
     POINTER,
     byref,
-    c_ulong,
     c_ulonglong,
     c_int,
     c_char,
@@ -12,17 +10,13 @@ from ctypes import (
 from ctypes.wintypes import (
     DWORD,
     WORD,
-    BOOL,
     BYTE,
-    USHORT,
     ULONG,
-    WCHAR,
     HANDLE
 )
 
-from Main.BluetoothKey import SYSTEMTIME, BLUETOOTH_DEVICE_INFO, BLUETOOTH_ADDRESS
-from Main.CWinTypes import Bluetooth
-from Main.Core import RStructure
+from FailedTests.Main.BluetoothKey import BLUETOOTH_DEVICE_INFO, BLUETOOTH_ADDRESS
+from FailedTests.Main.Core import RStructure
 
 
 ctypes.HRESULT.__str__ = lambda self: bin(self.value)[3:].zfill(32)
