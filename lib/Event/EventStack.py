@@ -1,6 +1,8 @@
 import time
 from typing import Callable
 
+# https://stackoverflow.com/questions/4145079/importerror-no-module-named-pythoncom
+# pip install pywin32
 import pythoncom
 
 from CustomWinHook.pyWinhook import HookManager

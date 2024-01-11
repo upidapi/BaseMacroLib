@@ -1,6 +1,4 @@
 import ctypes
-import time
-
 
 class POINT(ctypes.Structure):
     _fields_ = [
@@ -9,15 +7,8 @@ class POINT(ctypes.Structure):
     ]
 
 
-def get_mouse():
+def get_cursor_pos() -> (int, int):
     point = POINT()
     ctypes.windll.user32.GetCursorPos(ctypes.byref(point))
-    #                  pass our point by ref ^^^^^
-    # this lets GetCursorPos fill its x and y fields
 
     return point.x, point.y
-
-
-while True:
-    print(get_mouse())
-    time.sleep(0.05)
