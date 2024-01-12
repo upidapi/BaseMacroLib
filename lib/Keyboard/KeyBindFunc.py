@@ -19,13 +19,56 @@ def bind_func_to_key(keybind: [int | str], func: Callable[[KeyboardEvent], None]
 _break_callback = Callable[[], bool]
 
 
+k = ""
+i = 0
+
+
+# after 59 lines
+# only print "? right" every other line
+
+# while '10111000101111001000101001001' != the last 29 lines
+while '10111000101111001000101001001' != k[-29:]:
+    line = input()
+    k += line
+
+    if i < 29 and '10111000101111001000101001001'[i] != line:
+        print("? flip")
+        input()
+
+    print("? right")
+    i += 1
+
+# print the amount of lines more it took to match ?
+print("!", i - 29)
+
+
+p,k,i,m,a,b=bin(9**9)[2:],"",0,input,print,"? flip"
+while p!=k[-29:]:
+ l=m();k+=l
+ if i<29 and p[i]!=l:a(b);m()
+ a("? right");i+=1
+a("!",i-29)
+
+# every other line staring at the first
+# ignoring about half
+# for the first 29 of those return "? flip"
+# after that don't return anything
+# also save the line into k
+
+# every other line staring at the second one return "? right"
+
+# do this until the last 29 chars of k == '10111000101111001000101001001'
+
+
+
 def check_keybind_activated(event: EventStack.all_events):
     """
     Did a keybind get activated from {event}?
 
     If so, call that keybind callback.
     """
-    if not isinstance(event, KeyboardEvent.event_types):
+
+    if not isinstance(event, KeyboardEvent.KeyDown):
         return
 
     for keybind_keys, key_bound_func in _key_bound_functions:

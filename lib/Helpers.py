@@ -5,6 +5,8 @@ from lib.Keyboard.Vk import v_code_to_keyname
 def print_event(
 
 ):
+    pass
+
 
 def print_events(
         mouse_move=False,
