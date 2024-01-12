@@ -2,6 +2,10 @@ from lib.Event import EventStack, KeyboardEvent, MouseEvent
 from lib.Keyboard.Vk import v_code_to_keyname
 
 
+def print_event(
+
+):
+
 def print_events(
         mouse_move=False,
         mouse_click=True,
@@ -43,3 +47,6 @@ def print_events(
                     isinstance(event, MouseEvent.UnClick) and mouse_unclick:
                 print(f"{string_event}: {event.pos} {event.button}")
 
+
+if __name__ == '__main__':
+    print_events()
