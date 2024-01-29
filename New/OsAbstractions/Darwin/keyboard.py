@@ -413,7 +413,7 @@ class KeyEventListener(object):
 
     def handler(self, _, e_type, event, __):
         scan_code = Quartz.CGEventGetIntegerValueField(event, Quartz.kCGKeyboardEventKeycode)
-        key_name = name_from_scancode(scan_code)
+        key_name = Keyboard.name_from_scancode(scan_code)
         flags = Quartz.CGEventGetFlags(event)
         event_type = ""
         is_keypad = flags & Quartz.kCGEventFlagMaskNumericPad
@@ -476,30 +476,37 @@ class KeyEventListener(object):
         ))
         return event
 
-key_controller = KeyController()
 
-""" Exported functions below """
+class DarwinKeyboard(AbsKeyboard):
+    """ interface implementation for the Dwarwin keyboard """
+    _key_controller = KeyController()
 
-class Kayboard(AbsKeyboard):
+    @staticmethod
     def init():
         pass
         # key_controller = KeyController()
 
+    @staticmethod
     def press(scan_code):
-        key_controller.press(scan_code)
+        Keyboard._key_controller.press(scan_code)
 
+    @staticmethod
     def release(scan_code):
-        key_controller.release(scan_code)
+        Keyboard._key_controller.release(scan_code)
 
+    @staticmethod
     def map_name(name):
-        yield key_controller.map_char(name)
+        yield Keyboard._key_controller.map_char(name)
 
+    @staticmethod
     def name_from_scancode(scan_code):
-        return key_controller.map_scan_code(scan_code)
+        return Keyboard._key_controller.map_scan_code(scan_code)
 
+    @staticmethod
     def listen(callback):
         KeyEventListener(callback).run()
 
+    @staticmethod
     def type_unicode(character):
         output_source = Quartz.CGEventSourceCreate(Quartz.kCGEventSourceStateHIDSystemState)
         # Key down
