@@ -39,7 +39,7 @@ class AbsKeyboard(ABC):
     @abstractmethod
     def listen(callback):
         """ starts listening to keyboard events """
- 
+
     @staticmethod
     @abstractmethod
     def type_unicode(character):
