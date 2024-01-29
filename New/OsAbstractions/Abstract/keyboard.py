@@ -4,7 +4,7 @@
 from abc import ABC, abstractmethod
 
 
-class Keyboard(ABC):
+class AbsKeyboard(ABC):
     """ abstract represantation for a keyboard """
 
     @staticmethod

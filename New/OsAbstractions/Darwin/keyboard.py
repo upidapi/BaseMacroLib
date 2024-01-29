@@ -5,6 +5,7 @@ import time
 
 import ctypes
 import ctypes.util
+from New.OsAbstractions.Abstract.keyboard import AbsKeyboard
 
 import Quartz
 from AppKit import NSEvent
@@ -347,6 +348,22 @@ class KeyController(object):
         time.sleep(0.01)
 
     def map_char(self, character):
+        """
+        it can convert all keys that are on the current layout
+        but only the default ones and their shift verson
+
+        for example 
+            "a" => (code_for_a, [])
+            "1" => (code_for_1, [])
+            "!" => (code_for_1, ["shift"])
+
+            # since "alt-gr" needs to be pressed, 
+            # that means that it cant find it
+            "@" => error
+            
+        the "only shift" thing isn't a tecniall limitation 
+        but only a someone was wo lazy to implement it limitation
+        """
         if character in self.media_keys:
             return (128+self.media_keys[character],[])
 
@@ -463,75 +480,55 @@ key_controller = KeyController()
 
 """ Exported functions below """
 
-def init():
-    key_controller = KeyController()
+class Kayboard(AbsKeyboard):
+    def init():
+        pass
+        # key_controller = KeyController()
 
-def press(scan_code):
-    """ Sends a 'down' event for the specified scan code """
-    key_controller.press(scan_code)
+    def press(scan_code):
+        key_controller.press(scan_code)
 
-def release(scan_code):
-    """ Sends an 'up' event for the specified scan code """
-    key_controller.release(scan_code)
+    def release(scan_code):
+        key_controller.release(scan_code)
 
-def map_name(name):
-    """ 
-    Returns a tuple of (scan_code, modifiers) where ``scan_code`` is a numeric scan code 
-    and ``modifiers`` is an array of string modifier names (like 'shift') 
-    
-    it can convert all keys that are on the current layout
-    but only the default ones and their shift verson
+    def map_name(name):
+        yield key_controller.map_char(name)
 
-    for example 
-        "a" => (code_for_a, [])
-        "1" => (code_for_1, [])
-        "!" => (code_for_1, ["shift"])
+    def name_from_scancode(scan_code):
+        return key_controller.map_scan_code(scan_code)
 
-        # since "alt-gr" needs to be pressed, 
-        # that means that it cant find it
-        "@" => error
-        
-    the "only shift" thing isn't a tecniall limitation 
-    but only a someone was wo lazy to implement it limitation
-    """
-    yield key_controller.map_char(name)
+    def listen(callback):
+        KeyEventListener(callback).run()
 
-def name_from_scancode(scan_code):
-    """ Returns the name or character associated with the specified key code """
-    return key_controller.map_scan_code(scan_code)
-
-def listen(callback):
-    KeyEventListener(callback).run()
-
-def type_unicode(character):
-    output_source = Quartz.CGEventSourceCreate(Quartz.kCGEventSourceStateHIDSystemState)
-    # Key down
-    event = Quartz.CGEventCreateKeyboardEvent(
-        output_source,
-        0,
-        True
-    )
-    Quartz.CGEventKeyboardSetUnicodeString(
-        event,
-        len(character.encode('utf-16-le')) // 2,
-        character
-    )
-    Quartz.CGEventPost(
-        Quartz.kCGSessionEventTap,
-        event
-    )
-    # Key up
-    event = Quartz.CGEventCreateKeyboardEvent(
-        output_source,
-        0,
-        False
-    )
-    Quartz.CGEventKeyboardSetUnicodeString(
-        event,
-        len(character.encode('utf-16-le')) // 2,
-        character
-    )
-    Quartz.CGEventPost(
-        Quartz.kCGSessionEventTap,
-        event
-    )
+    def type_unicode(character):
+        output_source = Quartz.CGEventSourceCreate(Quartz.kCGEventSourceStateHIDSystemState)
+        # Key down
+        event = Quartz.CGEventCreateKeyboardEvent(
+            output_source,
+            0,
+            True
+        )
+        Quartz.CGEventKeyboardSetUnicodeString(
+            event,
+            len(character.encode('utf-16-le')) // 2,
+            character
+        )
+        Quartz.CGEventPost(
+            Quartz.kCGSessionEventTap,
+            event
+        )
+        # Key up
+        event = Quartz.CGEventCreateKeyboardEvent(
+            output_source,
+            0,
+            False
+        )
+        Quartz.CGEventKeyboardSetUnicodeString(
+            event,
+            len(character.encode('utf-16-le')) // 2,
+            character
+        )
+        Quartz.CGEventPost(
+            Quartz.kCGSessionEventTap,
+            event
+        )

@@ -4,7 +4,7 @@
 from abc import ABC, abstractmethod
 
 
-class Mouse(ABC):
+class AbsMouse(ABC):
     """ abstract represantation for a mouse """
 
     @staticmethod
